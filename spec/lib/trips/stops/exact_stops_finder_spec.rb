@@ -3,7 +3,7 @@ require_relative '../../../../models/graph.rb'
 
 RSpec.describe Trips::Stops::ExactStopsFinder do
   let(:input) { 'spec/fixtures/input.txt' }
-  let(:graph) { Graph.new(input).edges }
+  let(:graph) { Graph.new(input) }
   let(:instance) { described_class.new(args) }
   let(:args) do
     {

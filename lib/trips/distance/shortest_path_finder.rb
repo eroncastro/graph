@@ -4,7 +4,7 @@ module Trips
       Struct.new('Node', :origin, :distance)
 
       def initialize(args)
-        @graph = args.fetch(:graph)
+        @graph = args.fetch(:graph).clone
         @starting_node = args.fetch(:starting_node)
         @ending_node = args.fetch(:ending_node)
       end
@@ -22,19 +22,19 @@ module Trips
       end
 
       def dijkstra
-        nodes = []
+        nodes = graph.nodes.clone
+        edges = graph.edges.clone
 
         if starting_node == ending_node
           @ending_node = "#{@ending_node}2"
 
-          graph.nodes << ending_node
-          graph.edges.each do |key, value|
+          nodes << ending_node
+          edges.each do |key, value|
             value[ending_node] = value[starting_node] if value.key?(starting_node)
           end
-          graph.edges[ending_node] = graph.edges[starting_node]
+          edges[ending_node] = edges[starting_node]
         end
 
-        nodes += graph.nodes
         queue = {}
         nodes.each { |vertice| queue[vertice] = Struct::Node.new(nil, Float::INFINITY) }
 
@@ -44,7 +44,7 @@ module Trips
         current_node = starting_node
 
         while true do
-          graph.edges[current_node].each do |node, distance|
+          edges[current_node].each do |node, distance|
             if distance + queue[current_node].distance < queue[node].distance
               queue[node].origin = current_node
               queue[node].distance = distance + queue[current_node].distance

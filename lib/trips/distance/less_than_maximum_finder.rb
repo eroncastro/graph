@@ -28,8 +28,12 @@ module Trips
           paths << current_path.join.to_s
         end
 
-        graph[current_node].keys.each do |node|
-          find_paths(node, current_path.clone, current_distance + graph[current_node][node])
+        graph.edges[current_node].keys.each do |node|
+          find_paths(
+            node,
+            current_path.clone,
+            current_distance + graph.edges[current_node][node]
+          )
         end
       end
 
