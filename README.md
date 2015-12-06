@@ -1,5 +1,7 @@
 # Graph
 
+I have chosen the trains challenge, because it is a problem related to graphs which I like.
+
 ## Start
 
     bundle
