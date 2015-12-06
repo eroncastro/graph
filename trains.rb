@@ -118,6 +118,9 @@ less_than_distance_args = {
   maximum_distance: 30
 }
 
+require 'pry'
+binding.pry
+
 less_than_distance_route_counter =
   Trips::Distance::LessThanMaximumFinder.new(less_than_distance_args)
 puts "OUTPUT ##{counter}: #{less_than_distance_route_counter.count_trips}"
