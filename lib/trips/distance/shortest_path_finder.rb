@@ -23,7 +23,7 @@ module Trips
 
       def dijkstra
         nodes = graph.nodes.clone
-        edges = graph.edges.clone
+        edges = Marshal.load(Marshal.dump(graph.edges))
 
         if starting_node == ending_node
           @ending_node = "#{@ending_node}2"
