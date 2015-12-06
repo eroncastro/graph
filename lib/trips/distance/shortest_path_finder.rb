@@ -1,7 +1,7 @@
 module Trips
   module Distance
     class ShortestPathFinder
-      Struct.new('Node', :name, :dist)
+      Struct.new('Node', :origin, :distance)
 
       def initialize(args)
         @graph = args.fetch(:graph)
@@ -9,80 +9,57 @@ module Trips
         @ending_node = args.fetch(:ending_node)
       end
 
-      def find_optimum_path
-        calculate_min_paths
-        min_path
+      def shortest_path_distance
+        @shortest_path_distance ||= shortest_paths[ending_node].distance
       end
 
       private
 
       attr_reader :graph, :starting_node, :ending_node
 
+      def shortest_paths
+        @shortest_paths ||= dijkstra
+      end
+
       def dijkstra
         nodes = []
-        nodes += graph.nodes
 
+        if starting_node == ending_node
+          @ending_node = "#{@ending_node}2"
+
+          graph.nodes << ending_node
+          graph.edges.each do |key, value|
+            value[ending_node] = value[starting_node] if value.key?(starting_node)
+          end
+          graph.edges[ending_node] = graph.edges[starting_node]
+        end
+
+        nodes += graph.nodes
         queue = {}
         nodes.each { |vertice| queue[vertice] = Struct::Node.new(nil, Float::INFINITY) }
 
-        queue[starting_node].name = starting_node
-        queue[starting_node].dist = 0
+        queue[starting_node].origin = starting_node
+        queue[starting_node].distance = 0
 
-        current_node = Struct::Node.new(starting_node, 0)
+        current_node = starting_node
 
         while true do
-          next_node = Struct::Node.new(nil, Float::INFINITY)
-          if !graph.edges[current_node.name].nil?
-            graph.edges[current_node.name].each do |node, dist|
-              next if node == starting_node
-              if current_node.dist + dist < queue[node].dist
-                queue[node].name = current_node.name
-                queue[node].dist = current_node.dist + dist
-                if current_node.dist + dist < next_node.dist
-                  next_node.name = node
-                  next_node.dist = dist
-                end
-              end
+          graph.edges[current_node].each do |node, distance|
+            if distance + queue[current_node].distance < queue[node].distance
+              queue[node].origin = current_node
+              queue[node].distance = distance + queue[current_node].distance
             end
           end
-          nodes.delete(current_node.name)
+          nodes.delete(current_node)
 
           break if nodes.empty?
 
-          current_node.name = next_node.name
-          current_node.dist = next_node.dist unless next_node.dist == Float::INFINITY
-
-          if current_node.name.nil?
-            current_node.name = nodes.first
-          end
+          temp = queue.reject { |key, value| !nodes.include?(key) }
+          temp = temp.select { |key, value| value.origin == current_node }
+          current_node = temp.min_by { |key, value| value.distance }
+          current_node = current_node.nil? ? nodes.first : current_node.first
         end
         queue
-      end
-
-      def min_path
-        @min_path ||= begin
-          min_path = { nodes: [], distance: 0, cost: 0 }
-
-          current = ending_node
-          return if calculate_min_paths[current].dist == Float::INFINITY
-
-          while true do
-            min_path[:nodes] << current
-            if current == starting_node
-              min_path[:nodes] = min_path[:nodes].reverse.join(' ')
-              break
-            end
-
-            current = calculate_min_paths[current].name
-          end
-          min_path[:distance] = calculate_min_paths[ending_node].dist
-          min_path[:cost] = (@fuel_liter_price.to_f * min_path[:distance].to_f) / @autonomy.to_f
-          min_path
-        end
-      end
-
-      def calculate_min_paths
-        @calculate_min_paths ||= dijkstra
       end
     end
   end
